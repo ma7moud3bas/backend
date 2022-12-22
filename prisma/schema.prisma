@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  image_url String?
+  Booking   Booking[]
+
+  @@map("user")
+}
+
+model Train {
+  number Int        @id
+  type   TrainType
+  class  TrainClass
+  Route  Route?
+
+  @@map("train")
+}
+
+model Route {
+  number             Int           @id @default(autoincrement())
+  departure_time     DateTime      @db.Time()
+  arrival_time       DateTime      @db.Time()
+  departure_station  String
+  arrival_station    String
+  trainNumber        Int           @unique
+  operational        Boolean       @default(true)
+  Booking            Booking[]
+  Train              Train         @relation(fields: [trainNumber], references: [number])
+  intermediate_stops StationStop[]
+
+  @@map("route")
+}
+
+model StationStop {
+  time        DateTime @db.Time()
+  stationName String
+  routeNumber Int
+  assignedAt  DateTime @default(now())
+  Route       Route    @relation(fields: [routeNumber], references: [number])
+  Station     Station  @relation(fields: [stationName], references: [name])
+
+  @@id([routeNumber, stationName])
+  @@map("station_stop")
+}
+
+model Station {
+  name   String        @id
+  routes StationStop[]
+
+  @@map("station")
+}
+
+model Booking {
+  id                Int      @id @default(autoincrement())
+  date              DateTime @db.Date
+  user_id           Int
+  route_number      Int
+  departure_station String
+  arrival_station   String
+  departure_time    DateTime @db.Time()
+  arrival_time      DateTime @db.Time()
+  seats             Json[]
+  Route             Route    @relation(fields: [route_number], references: [number])
+  User              User     @relation(fields: [user_id], references: [id])
+
+  @@map("booking")
+}
+
+enum TrainType {
+  VIP
+  EXPRESS
+  ORDINARY
+  RUSSIAN
+  SLEEPER
+}
+
+enum TrainClass {
+  A1
+  A2
+  A3
+}
