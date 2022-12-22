@@ -2,7 +2,7 @@ import { Server } from 'http';
 import startServer from './server';
 
 try {
-    const PORT = 8080;
+    const PORT = parseInt(process.env.PORT || "3000");
     let server: Server;
 
     if (module.hot) {
